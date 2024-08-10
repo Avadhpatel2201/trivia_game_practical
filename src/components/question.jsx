@@ -7,14 +7,20 @@ const Question = () => {
   const [selectedOption, setSelectedOption] = useState(null);
   const [isCorrect, setIsCorrect] = useState(null);
   const [userResponses, setUserResponses] = useState([]);
-  const navigate = useNavigate(); // Using useNavigate for navigation
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Fetch questions from the API
-    fetch("https://opentdb.com/api.php?amount=10")
-      .then((response) => response.json())
-      .then((data) => setQuestions(data.results))
-      .catch((error) => console.error("Error fetching questions:", error));
+    const fetchQuestions = async () => {
+      try {
+        const response = await fetch("https://opentdb.com/api.php?amount=10");
+        const data = await response.json();
+        setQuestions(data.results);
+      } catch (error) {
+        console.error("Error fetching questions:", error);
+      }
+    };
+
+    fetchQuestions();
   }, []);
 
   const handleOptionChange = (option) => {
@@ -46,7 +52,36 @@ const Question = () => {
     if (currentQuestionIndex + 1 < questions.length) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
-      // Redirect to results page after all questions
+      navigate("/results", { state: { userResponses } });
+    }
+  };
+
+  const handlePreviousQuestion = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
+      setSelectedOption(null);
+      setIsCorrect(null);
+    }
+  };
+
+  const handleSkipQuestion = () => {
+    setSelectedOption(null);
+    setIsCorrect(null);
+
+    setUserResponses((prevResponses) => [
+      ...prevResponses,
+      {
+        question: questions[currentQuestionIndex].question,
+        selectedOption: null,
+        correctAnswer: questions[currentQuestionIndex].correct_answer,
+        isCorrect: false,
+        skipped: true,
+      },
+    ]);
+
+    if (currentQuestionIndex + 1 < questions.length) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    } else {
       navigate("/results", { state: { userResponses } });
     }
   };
@@ -63,6 +98,9 @@ const Question = () => {
 
   return (
     <div>
+      <h4>
+        Question {currentQuestionIndex + 1} of {questions.length}
+      </h4>
       <h4 id="question">{currentQuestion.question}</h4>
       <div>
         {options.map((option, index) => (
@@ -84,7 +122,16 @@ const Question = () => {
           </div>
         ))}
       </div>
-      <button
+      <div>
+        <button
+          type="button"
+          className="btnSpacing"
+          onClick={handlePreviousQuestion}
+          disabled={currentQuestionIndex === 0}
+        >
+          Previous
+        </button>
+        <button
         type="button"
         className="btnSpacing"
         onClick={handleSubmit}
@@ -92,6 +139,15 @@ const Question = () => {
       >
         Submit
       </button>
+        <button
+          type="button"
+          className="btnSpacing"
+          onClick={handleSkipQuestion}
+          disabled={isCorrect !== null}
+        >
+          Skip
+        </button>
+      </div>
 
       {isCorrect !== null && (
         <div>
@@ -104,8 +160,7 @@ const Question = () => {
                 Correct Answer:{" "}
                 <strong>{currentQuestion.correct_answer}</strong>
               </p>
-              <p>Explanation: Explanation about the answer.</p>{" "}
-              {/* Add explanation if available */}
+              <p>Explanation: We can add explanation about the answer here but there is no explanation<br/> in api response so i we need to add explanation about every questions in api.</p>
             </div>
           )}
           <button
