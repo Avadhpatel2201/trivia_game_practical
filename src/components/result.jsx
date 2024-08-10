@@ -8,6 +8,11 @@ const Results = () => {
   const totalCorrect = userResponses.filter((res) => res.isCorrect).length;
   const totalIncorrect = userResponses.length - totalCorrect;
 
+  const clearCacheAndFetchNewQuestions = async () => {
+    localStorage.removeItem("questions");
+    // await fetchQuestions();
+  };
+
   return (
     <div><hr />
       <h2>Quiz Results</h2>
@@ -56,7 +61,7 @@ const Results = () => {
         ))}
       </div>
       </div>
-      <button><Link to='/' style={{color: "white"}}>Play again</Link></button>
+      <button onClick={clearCacheAndFetchNewQuestions}><Link to='/' style={{color: "white"}}>Play again</Link></button>
     </div>
 
   );

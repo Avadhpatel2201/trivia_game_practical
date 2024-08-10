@@ -10,18 +10,28 @@ const Question = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchQuestions = async () => {
+  const fetchQuestions = async () => {
+    const cachedQuestions = localStorage.getItem("questions");
+    if (cachedQuestions) {
+      setQuestions(JSON.parse(cachedQuestions));
+    } else {
       try {
         const response = await fetch("https://opentdb.com/api.php?amount=10");
+        if (response.status === 429) {
+          console.error("Too many requests, try again later.");
+          return;
+        }
         const data = await response.json();
         setQuestions(data.results);
+        localStorage.setItem("questions", JSON.stringify(data.results));
       } catch (error) {
         console.error("Error fetching questions:", error);
       }
-    };
+    }
+  };
 
-    fetchQuestions();
-  }, []);
+  fetchQuestions();
+}, []);
 
   const handleOptionChange = (option) => {
     setSelectedOption(option);
